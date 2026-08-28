@@ -40,6 +40,6 @@ typedef struct {
 extern font_t g_font;
 
 void init_font(void *font_raw_data);
-void draw_font(struct limine_framebuffer *fb, char c, uint32_t x, uint32_t y, uint32_t* fg, uint32_t* bg);
+void draw_font(struct limine_framebuffer *fb, char c, uint32_t x, uint32_t y, uint32_t fg, uint32_t bg);
 
 #endif
