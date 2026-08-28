@@ -1,4 +1,4 @@
-.PHONY: all clean run build
+.PHONY: all limine clean run build
 
 CC = gcc
 AS = nasm
