@@ -196,10 +196,9 @@ void reverse(char *str, size_t len)
     }
 }
 
-char* itoa(int num, char* str, int base)
+char *utoa(unsigned long long num, char* str, int base)
 {
     int i = 0;
-    bool isNegative = false;
 
     if (num == 0)
 	{
@@ -208,25 +207,286 @@ char* itoa(int num, char* str, int base)
         return str;
     }
 
-    if (num < 0 && base == 10)
-	{
-        isNegative = true;
-        num = -num;
-    }
-
     while (num != 0)
 	{
-        int rem = num % base;
+        unsigned int rem = num % base;
         str[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
-        num = num / base;
+        num /= base;
     }
-
-    if (isNegative)
-	{
-        str[i++] = '-';
-	}
 
     str[i] = '\0';
     reverse(str, i);
     return str;
+}
+
+char *itoa(long long num, char* str, int base)
+{
+    if (num < 0 && base == 10)
+	{
+		str[0] = '-';
+        utoa((unsigned long long)(-(unsigned long long)num), str + 1, base);
+		return str;
+    }
+
+	utoa((unsigned long long)num, str, base);
+    return str;
+}
+
+void pprintf(uintptr_t ptr)
+{
+    if (ptr == 0)
+	{
+        write_string("(nil)");
+        return;
+    }
+
+    write_string("0x");
+
+    int len = sizeof(uintptr_t) * 2;
+    char buff[17];
+    buff[len] = '\0';
+
+    for (int i = len - 1; i >= 0; i--)
+	{
+        buff[i] = "0123456789abcdef"[ptr & 0xF];
+        ptr >>= 4;
+    }
+    write_string(buff);
+}
+
+void vprintf(const char *str, va_list args)
+{
+	if (str == NULL)
+	{
+		return;
+	}
+	
+	char itoa_buffer[64];			// Buffer for the ITOA function set to 64 which is overkill
+
+	for (size_t i = 0; str[i] != '\0'; i++)
+	{
+		if (str[i] != '%')			// this print a character at index i from the "str" string
+        {
+            write_char(str[i]);
+            continue;
+        }
+
+        i++;
+
+		if (str[i] == '\0')
+        {
+			write_char('%')
+            break;
+        }
+
+		switch (str[i])
+		{
+			case 'c':						// print a char
+				{
+					char c = (char)va_arg(args, int);
+					write_char(c);
+					break;
+				}
+
+			case 's':						// print a string
+				{
+					char *strg = va_arg(args, char*);
+
+					if (strg == NULL)
+						write_string("(null)");
+					else
+						write_string(strg);
+
+					break;
+				}
+
+			case 'd':						// print an int
+			case 'i':
+				{
+					int val = va_arg(args, int);
+					itoa(val, itoa_buffer, 10);
+					write_string(itoa_buffer);
+					break;
+				}
+
+			case 'u':						// print an unsigned int
+				{
+					unsigned int val = va_arg(args, unsigned int);
+					utoa(val, itoa_buffer, 10);
+					write_string(itoa_buffer);
+					break;
+				}
+
+			case 'h':						// print a short
+				i++;
+				if (str[i] == 'd') 		// %hd -> short int
+				{
+					short val = (short)va_arg(args, int);
+					itoa(val, itoa_buffer, 10);
+					write_string(itoa_buffer);
+					break;
+				}
+				else if (str[i] == 'u')	//%hu -> unsigned short
+				{
+					unsigned short val = (unsigned short)va_arg(args, unsigned int);
+					utoa(val, itoa_buffer, 10);
+					write_string(itoa_buffer);
+					break;
+				}
+				else
+				{
+					i--;
+					break;
+				}
+				
+				break;
+
+			case 'l':						// print a long
+				i++;
+				if (str[i] == 'd') 		// %ld -> long int
+				{
+					long val = va_arg(args, long);
+					itoa(val, itoa_buffer, 10);
+					write_string(itoa_buffer);
+					break;
+				}
+				else if (str[i] == 'u') 	//%lu -> unisgned long
+				{
+					unsigned long val = va_arg(args, unsigned long);
+					utoa(val, itoa_buffer, 16);
+					write_string(itoa_buffer);
+					break;
+				}
+				else if (str[i] == 'x') 	//%lx -> long hex
+				{
+					unsigned long val = va_arg(args, unsigned long);
+					utoa(val, itoa_buffer, 16);
+					write_string(itoa_buffer);
+					break;
+				}
+				else if (str[i] == 'l')	// check for a long long "%ll_"
+				{
+					i++;
+					if (str[i] == 'd')	//%lld -> long long int
+					{
+						long long val = va_arg(args, long long);
+						itoa(val, itoa_buffer, 10);
+						write_string(itoa_buffer);
+						break;
+					}
+					else if (str[i] == 'u') 	//%llu -> unisgned long
+					{
+						unsigned long long val = va_arg(args, unsigned long long);
+						utoa(val, itoa_buffer, 10);
+						write_string(itoa_buffer);
+						break;
+					}
+					else if (str[i] == 'x') //%llx -> long long hex
+					{
+						unsigned long long val = va_arg(args, unsigned long long);
+						utoa(val, itoa_buffer, 16);
+						write_string(itoa_buffer);
+						break;
+					}
+					else
+					{
+						i--;
+						break;
+					}
+					
+				}
+
+				break;
+
+			case 'z':					// print a size_t
+				i++;
+				if (str[i] == 'x') 		// %zx -> size_t hex
+				{
+					size_t val = va_arg(args, size_t);
+					utoa(val, itoa_buffer, 16);
+					write_string(itoa_buffer);
+					break;
+				}
+				else if (str[i] == 'u')	//%zu -> size_t
+				{
+					size_t val = va_arg(args, size_t);
+					utoa(val, itoa_buffer, 10);
+					write_string(itoa_buffer);
+					break;
+				}
+				else
+				{
+					i--;
+					break;
+				}
+
+				break;
+			
+			case 'b':						// print a value as a binary
+				{
+					unsigned int val = va_arg(args, int);
+					itoa((int)val, itoa_buffer, 2);
+					write_string(itoa_buffer);
+					break;
+				}
+
+			case 'o':						// print in base 8
+				{
+					unsigned int val = va_arg(args, int);
+					itoa((int)val, itoa_buffer, 8);
+					write_string(itoa_buffer);
+					break;
+				}
+
+			case 'x':						// print a value as an hex
+				{
+					unsigned int val = va_arg(args, int);
+					itoa((int)val, itoa_buffer, 16);
+					write_string(itoa_buffer);
+					break;
+				}
+			
+			case 'X':						// print a value as an hex in uppercase
+				{
+					unsigned int val = va_arg(args, int);
+					itoa((int)val, itoa_buffer, 16);
+					for (size_t x = 0; itoa_buffer[x] != '\0'; x++)
+					{
+						if (itoa_buffer[x] >= 'a' && itoa_buffer[x] <= 'f')
+						{
+							itoa_buffer[x] -= 32;
+						}
+					}
+					
+					write_string(itoa_buffer);
+					break;
+				}
+
+			case 'p':						// print a pointer adress (i might rework this case in the future)
+				{
+					uintptr_t ptr = (uintptr_t)va_arg(args, void*);
+					pprintf(ptr);
+					break;
+				}
+				break;
+
+			case '%':
+				write_char('%');
+				break;
+			
+			default:				// unknown specifier, just print it
+				write_char('%');
+				write_char(str[i]);
+				break;
+		}
+	}
+	
+}
+
+void printf(const char *str, ...)
+{
+	va_list args;
+	va_start(args, str);
+	vprintf(str, args);
+	va_end(args);
 }

@@ -27,17 +27,11 @@ void kernel_main(void)
     pit_init();
     keyboard_init();
 
-    // sleep(500);
-
     new_line();
-
-    default_theme.fg = kernel_blue;
-    default_theme.bg = kernel_gray;
-
-    terminal_set_theme(default_theme);
 
     write_string("Hello World this is MellOS ");
 
+    printf("TEST% d", 95); printf("-OS");
 
     // draw_grid();
     // draw_box(-1, 0, 550, 0);

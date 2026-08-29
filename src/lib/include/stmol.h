@@ -18,6 +18,12 @@ char *strcat(char *dest, const char *src);
 void halt(void);
 
 void reverse(char *str, size_t len);
-char* itoa(int num, char *str, int base);
+
+char *itoa(long long num, char *str, int base);
+char *utoa(unsigned long long num, char* str, int base);
+
+void pprintf(uintptr_t ptr);
+void vprintf(const char *str, va_list args);
+void printf(const char *str, ...);
 
 #endif
