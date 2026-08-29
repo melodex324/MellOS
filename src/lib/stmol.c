@@ -275,7 +275,7 @@ void vprintf(const char *str, va_list args)
 
 		if (str[i] == '\0')
         {
-			write_char('%')
+			write_char('%');
             break;
         }
 

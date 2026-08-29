@@ -31,8 +31,6 @@ void kernel_main(void)
 
     write_string("Hello World this is MellOS ");
 
-    printf("TEST% d", 95); printf("-OS");
-
     // draw_grid();
     // draw_box(-1, 0, 550, 0);
 
