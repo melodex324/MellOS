@@ -9,7 +9,7 @@ C_FLAG = -std=c11 -Wall -Wextra -O2 -pipe \
     -fno-lto -fno-PIC -m64 -march=x86-64 \
     -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -mcmodel=kernel \
 	-c \
-	-I$(DIR_INC) -I$(DIR_IO) -I$(DIR_GDT) -I$(DIR_IDT) -I$(DIR_PIT) -I$(DIR_UEFI) -I$(DIR_FONT) -I$(DIR_KEYBOARD)
+	-I$(DIR_INC) -I$(DIR_IO) -I$(DIR_GDT) -I$(DIR_IDT) -I$(DIR_PIT) -I$(DIR_UEFI) -I$(DIR_FONT) -I$(DIR_KEYBOARD) -I$(DIR_SHELL) -I$(DIR_COMMAND)
 
 LD_FLAGS = -m elf_x86_64 -nostdlib -static -z max-page-size=0x1000 -T
 
@@ -23,6 +23,8 @@ DIR_IDT = $(DIR_KERNEL)/idt
 DIR_PIT = $(DIR_KERNEL)/pit
 DIR_LIB = lib
 DIR_KEYBOARD = keyboard
+DIR_SHELL = shell
+DIR_COMMAND = $(DIR_SHELL)/command
 
 DIR_INC = lib/include
 
@@ -54,6 +56,8 @@ all: limine
 	$(CC) $(C_FLAG) $(DIR_IDT)/idt.c -o $(DIR_BIN)/idt.o
 	$(CC) $(C_FLAG) $(DIR_PIT)/pit.c -o $(DIR_BIN)/pit.o
 	$(CC) $(C_FLAG) $(DIR_KEYBOARD)/keyboard.c -o $(DIR_BIN)/keyboard.o
+	$(CC) $(C_FLAG) $(DIR_SHELL)/shell.c -o $(DIR_BIN)/shell.o
+	$(CC) $(C_FLAG) $(DIR_COMMAND)/command.c -o $(DIR_BIN)/command.o
 
 	$(CC) $(C_FLAG) $(DIR_FONT)/font.S -o $(DIR_BIN)/font.o
 
@@ -73,6 +77,9 @@ all: limine
 		$(DIR_BIN)/pit.o \
 		$(DIR_BIN)/system.o \
 		$(DIR_BIN)/keyboard.o \
+		$(DIR_BIN)/shell.o \
+		$(DIR_BIN)/command.o \
+
 	
 	cp -v $(DIR_BUILD)/bin/kernel.elf $(DIR_BUILD)/uefi
 	cp -v $(DIR_UEFI)/limine.conf $(DIR_BUILD)/uefi

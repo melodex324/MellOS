@@ -1,0 +1,12 @@
+TODO :
+make a struct for the user input so each function can have it's own instead of sharing the same input buffer. And also find better names for those variables in the struct
+    Rework the struct and make another struct that will only parse a char and the scancode with the key booleans
+
+work on the shell after making the input buffer struct, should be fast unlike the user buffer lol
+
+Rework the command.c file and the overall command system
+
+
+Features to add:
+    Physical Memory Manager
+    Virtual Memory Manager

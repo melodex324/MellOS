@@ -14,46 +14,27 @@
 #include <pit.h>
 #include <system.h>
 #include <keyboard.h>
-
+#include <shell.h>
 
 void kernel_main(void)
 {   
     limine_buff_init();
     init_font((void *)_binary_font_psf_start);
     display_init();
-    terminal_set_color(kernel_white, kernel_black);
+    terminal_init();
     gdt_init();
     idt_init();
     pit_init();
     keyboard_init();
-
+    shell_init();
+    
     new_line();
 
-    write_string("Hello World this is MellOS ");
+    write_string("Hello World this is MellOS \n\n\n");
 
-    // draw_grid();
-    // draw_box(-1, 0, 550, 0);
+    box_draw(120, 0x00FFB100);
 
     halt();
-}
-
-void draw_grid()
-{
-    for (size_t h = 0; h < TERMINAL_HEIGHT; h++)
-    {
-        for (size_t y = 0; y < fb->width; y++)
-        {
-            draw_pixel(fb, y, (h * g_font.height), kernel_light_blue);
-        }
-    }
-    for (size_t w = 0; w < TERMINAL_WIDTH; w++)
-    {
-        for (size_t x = 0; x < fb->width; x++)
-        {
-            draw_pixel(fb, w * g_font.width, x, kernel_light_blue);
-        }
-    }
-
 }
 
 // testing the frambuffer will be removed later
@@ -177,5 +158,19 @@ void draw_shape(int iterration, int remove, int step, int max_size, int col_type
             col = 0;
         }
 
+    }
+}
+
+void box_draw(int max_size, int color)
+{
+    size_t start_x = fb->width / 2;
+    size_t start_y = fb->height / 2;
+
+    for (size_t y = start_y; y < start_y; y++)
+    {
+        for (size_t x = start_x; x < start_x; x++)
+        {
+            draw_pixel(fb, x, y, color);
+        }
     }
 }

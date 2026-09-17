@@ -15,6 +15,11 @@ bool keyboard_enabled = true;
 bool shift_pressed;
 bool caps_lock;
 
+kb_line_buffer keyboard_line_buffer;
+
+bool kb_press;
+char kb_input[256];
+int kb_index = 0;
 
 //QWERTY keyboard layout
 //lowercase array
@@ -72,7 +77,6 @@ keyboardlayout *currentLayout = &azerty;
 
 void keyboard_init()
 {
-
     shift_pressed = false; caps_lock = false;
 
     irq_install_handler(1, &keyboard_handler);
@@ -82,8 +86,8 @@ void keyboard_init()
 
 void keyboard_debug(uint8_t raw, uint8_t scancode, uint8_t press)
 {
-    terminal_col old_theme = current_theme;
-    terminal_col debug_theme; debug_theme.fg = kernel_black; debug_theme.bg = kernel_light_gray; 
+    terminal_color old_theme = current_theme;
+    terminal_color debug_theme; debug_theme.fg = kernel_black; debug_theme.bg = kernel_light_gray; 
 
     terminal_set_theme(debug_theme);
     
@@ -92,17 +96,30 @@ void keyboard_debug(uint8_t raw, uint8_t scancode, uint8_t press)
     int TW = terminal_column; int TH = terminal_row;
     terminal_column = 0; terminal_row = TERMINAL_HEIGHT -1;
 
-    char rw[256]; itoa(raw, rw, 10);
-    char sc[256]; itoa(scancode, sc, 10);
-    char ps[256]; itoa(press, ps, 10);
+    printf("Keyboard Debug : %d %d", scancode, press);
 
-    write_string("Keyboard Debug : ");
-    write_string(rw); write_char(' ');
-    write_string(sc); write_char(' ');
-    write_string(ps); write_char(' ');
+    int max_len = 75;
+
+    if (strlen(keyboard_line_buffer.buffer) > max_len)
+    { 
+        char buff[max_len + 1];
+        
+        for (size_t i = 0; i < max_len; i++)
+        {
+            buff[i] = keyboard_line_buffer.buffer[keyboard_line_buffer.len - max_len + i];
+        }
+        buff[max_len] = '\0';
+        terminal_column = ((TERMINAL_WIDTH - strlen(buff)) / 2) - 6;
+        printf("| %d | ..%s |", keyboard_line_buffer.len, buff);
+    }
+    else
+    {        
+        terminal_column = ((TERMINAL_WIDTH - strlen(keyboard_line_buffer.buffer)) / 2) - 4;
+        printf("| %d | %s |", keyboard_line_buffer.len, keyboard_line_buffer.buffer);
+    }
 
     terminal_column = TERMINAL_WIDTH - strlen("Lang : ") - strlen(currentLayout->name);
-    write_string("lang : "); write_string(currentLayout->name);
+    printf("lang : %s", currentLayout->name);
 
     terminal_set_theme(old_theme);
     terminal_column = TW; terminal_row = TH;
@@ -116,11 +133,26 @@ void keyboard_handler(registers_t* regs)
     uint8_t scancode = raw & 0x7F;
     uint8_t press = !(raw & 0x80);
 
+    kb_press = press;
+
     keyboard_debug(raw, scancode, press);
+
+    shell_update(); // will be changed to another file
 
     switch (scancode)
     {
         case 1:
+            break;
+
+        case 14:
+            if (press == 1 &&  keyboard_line_buffer.len > 0 && keyboard_enabled == true)
+            {
+                terminal_column --;
+                write_char('\0');
+                keyboard_line_buffer.buffer[(keyboard_line_buffer.len--) - 1] = '\0';
+                terminal_column --;
+            }
+            
             break;
 
         case 29:    // ctrl scancode
@@ -170,8 +202,25 @@ void keyboard_handler(registers_t* regs)
                     c = currentLayout->lowercase[scancode];
                 }
                 
+                if (c == '\n')
+                {
+                    keyboard_line_buffer.ready = true;
+                    memcpy(keyboard_line_buffer.returned, keyboard_line_buffer.buffer, keyboard_line_buffer.len);
+
+                    keyboard_line_buffer.len = 0;
+                    memset(keyboard_line_buffer.buffer, '\0', sizeof(keyboard_line_buffer.buffer)/sizeof(keyboard_line_buffer.buffer[0]));
+                }
+                else
+                {
+                    
+                    keyboard_line_buffer.buffer[keyboard_line_buffer.len++] = c;
+                }
+
+                // kbinput.raw = c
+
                 write_char(c);
             }
+            
 
             break;
     }
