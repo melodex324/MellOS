@@ -11,7 +11,7 @@ C_FLAG = -std=c11 -Wall -Wextra -O2 -pipe \
 	-c \
 	-I$(DIR_INC) -I$(DIR_IO) -I$(DIR_GDT) -I$(DIR_IDT) -I$(DIR_PIT) -I$(DIR_UEFI) -I$(DIR_FONT) -I$(DIR_KEYBOARD) -I$(DIR_SHELL) -I$(DIR_COMMAND)
 
-LD_FLAGS = -m elf_x86_64 -nostdlib -static -z max-page-size=0x1000 -T
+LD_FLAGS = -m elf_x86_64 -nostdlib -static -z execstack -z max-page-size=0x1000 -T
 
 DIR_BUILD = Build
 DIR_KERNEL = kernel
@@ -92,8 +92,6 @@ all: limine
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		$(DIR_BUILD)/uefi -o $(DIR_ISO)/MellOS.iso
 	./limine/limine bios-install $(DIR_ISO)/MellOS.iso
-
-	cp $(DIR_ISO)/MellOS.iso $(DIR_ISO)/Intel_Test.iso
 
 clean:
 	rm -rf $(DIR_BUILD)
