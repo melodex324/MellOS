@@ -1,5 +1,7 @@
-#include <gdt.h>
 #include <stmol.h>
+#include <terminal.h>
+
+#include <gdt.h>
 
 extern void gdt_flush(uint64_t);
 extern void tss_flush();

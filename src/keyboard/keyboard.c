@@ -8,6 +8,9 @@
 #include <terminal.h>
 #include <stmol.h>
 
+#include <shell.h>
+
+
 #include <keyboard.h>
 
 bool keyboard_enabled = true;
@@ -84,7 +87,7 @@ void keyboard_init()
     write_string("Keyboard initiated ");
 }
 
-void keyboard_debug(uint8_t raw, uint8_t scancode, uint8_t press)
+void keyboard_debug(uint8_t scancode, uint8_t press)
 {
     terminal_color old_theme = current_theme;
     terminal_color debug_theme; debug_theme.fg = kernel_black; debug_theme.bg = kernel_light_gray; 
@@ -98,7 +101,7 @@ void keyboard_debug(uint8_t raw, uint8_t scancode, uint8_t press)
 
     printf("Keyboard Debug : %d %d", scancode, press);
 
-    int max_len = 75;
+    size_t max_len = 75;
 
     if (strlen(keyboard_line_buffer.buffer) > max_len)
     { 
@@ -135,7 +138,7 @@ void keyboard_handler(registers_t* regs)
 
     kb_press = press;
 
-    keyboard_debug(raw, scancode, press);
+    keyboard_debug(scancode, press);
 
     shell_update(); // will be changed to another file
 
