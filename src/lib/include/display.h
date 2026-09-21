@@ -7,7 +7,6 @@
 #define TEXT_WIDTH g_font.width
 #define TEXT_HEIGHT g_font.height
 
-__attribute__((used, section(".requests")))
 extern volatile struct limine_framebuffer_request framebuffer_request;
 
 extern struct limine_framebuffer *fb;
